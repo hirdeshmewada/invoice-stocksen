@@ -6,7 +6,7 @@ const cors = require('cors');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 5000; // Use the PORT environment variable
 
 // Use CORS
 app.use(cors());
@@ -26,7 +26,6 @@ function fileToGenerativePart(path, mimeType) {
     },
   };
 }
-//csdsd
 
 app.post('/query-image', upload.single('image'), async (req, res) => {
   const imagePath = req.file.path;
