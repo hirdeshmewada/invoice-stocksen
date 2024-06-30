@@ -7,16 +7,13 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const path = require('path');
 
 const app = express();
-const port = process.env.PORT || 5000; // Use the PORT environment variable
+const port = process.env.PORT || 3000; // Use the PORT environment variable
 
 // Use CORS
 app.use(cors());
 
-// Serve static files from the "public" directory
-app.use(express.static('public'));
-
 // Set up multer for file uploads
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: '/tmp/' }); // Use /tmp/ directory for uploads
 
 // Access your API key as an environment variable
 if (!process.env.GOOGLE_API_KEY) {
