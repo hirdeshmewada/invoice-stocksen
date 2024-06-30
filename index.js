@@ -4,12 +4,16 @@ const multer = require('multer');
 const fs = require('fs');
 const cors = require('cors');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 5000; // Use the PORT environment variable
 
 // Use CORS
 app.use(cors());
+
+// Serve static files from the "public" directory
+app.use(express.static('public'));
 
 // Set up multer for file uploads
 const upload = multer({ dest: 'uploads/' });
@@ -30,6 +34,11 @@ function fileToGenerativePart(path, mimeType) {
   };
 }
 
+// Serve the HTML file on the root route
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 app.post('/query-image', upload.single('image'), async (req, res) => {
   const imagePath = req.file.path;
   const customQuery = req.body.customQuery || '';
@@ -39,7 +48,7 @@ app.post('/query-image', upload.single('image'), async (req, res) => {
     const inputPrompt = `
       You will receive input images as invoices &
       you will have to answer questions based on the input image.
-      Custom Query,if the query they ask reply like assistant, also answer in same lanuage as ask: ${customQuery}
+      Custom Query, if the query they ask reply like assistant, also answer in same language as ask: ${customQuery}
     `;
     const imageParts = [fileToGenerativePart(imagePath, 'image/jpg')];
 
