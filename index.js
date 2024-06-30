@@ -15,6 +15,9 @@ app.use(cors());
 const upload = multer({ dest: 'uploads/' });
 
 // Access your API key as an environment variable
+if (!process.env.GOOGLE_API_KEY) {
+  throw new Error('GOOGLE_API_KEY is not defined in the environment variables');
+}
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 // Converts local file information to a GoogleGenerativeAI.Part object
@@ -32,7 +35,7 @@ app.post('/query-image', upload.single('image'), async (req, res) => {
   const customQuery = req.body.customQuery || '';
 
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = await genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const inputPrompt = `
       You will receive input images as invoices &
       you will have to answer questions based on the input image.
@@ -50,7 +53,7 @@ app.post('/query-image', upload.single('image'), async (req, res) => {
     res.json({ result: text });
   } catch (error) {
     console.error('Error querying the Gemini LLM model:', error);
-    res.status(500).json({ error: 'Error querying the Gemini LLM model' });
+    res.status(500).json({ error: 'Error querying the Gemini LLM model', details: error.message });
   }
 });
 
