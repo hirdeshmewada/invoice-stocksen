@@ -12,7 +12,7 @@ const port = process.env.PORT || 5000; // Use the PORT environment variable
 app.use(cors());
 
 // Set up multer for file uploads
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: "/tmp/" });
 
 // Access your API key as an environment variable
 if (!process.env.GOOGLE_API_KEY) {
@@ -29,6 +29,11 @@ function fileToGenerativePart(path, mimeType) {
     },
   };
 }
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+// Handle favicon requests
+app.get("/favicon.ico", (req, res) => res.status(204));
 
 app.post('/query-image', upload.single('image'), async (req, res) => {
   const imagePath = req.file.path;
