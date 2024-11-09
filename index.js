@@ -36,14 +36,14 @@ async function extractDataFromImage(imagePath) {
    "Analyze the provided product image and generate a complete e-commerce listing suitable for platforms like Amazon or Flipkart. 
      Include essential details,:
 
-    - **Core Info**: Product_name(important), brand, model/SKU, and price (in rupees, no symbols).
+    - **Core Info**: product_name, brand, model/SKU, and price (in rupees, no symbols).
     - **Description**:Includes a details paragraph and points Key features, unique benefits, and ideal uses.
     - **Specifications**: Size, weight, color, materials, and compatibility.
     - **Usage & Care**: Instructions, safety info, and any setup steps.
     - **Audience & Use Cases**: Target users and ideal settings.
     - **Extras**: Certifications, warranty, options (e.g., colors), and SEO tags.
 
-Create a thorough, organized catalog entry ready for upload."
+Create a thorough, organized catalog entry ready for upload with product_name must."
   `;
 
   const imageParts = [fileToGenerativePart(imagePath, 'image/jpg')];
