@@ -34,7 +34,7 @@ async function extractDataFromImage(imagePath) {
 
   const inputPrompt = `
     "Analyze the provided image and extract initial product details product_name compulsory .
-     And Also add the product details more needed for same extracted product to list it on e commerce like amazon or flipkart
+     And Also add every product details required for same extracted product to list it on e commerce platforms like amazon or flipkart
     Also make sure  that price in rupees in no symbol,description,manufacturer and category should be there alteast
 "
   `;
