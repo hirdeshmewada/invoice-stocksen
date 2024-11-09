@@ -33,9 +33,21 @@ async function extractDataFromImage(imagePath) {
   const model = await genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
   const inputPrompt = `
-    "Analyze the provided image and extract initial product details product_name compulsory .
-     And Also add product details required for same extracted product to list it on e commerce platforms like amazon or flipkart and price in rupees in no symbol,description,manufacturer and category should be there alteast
-"
+    "Analyze the provided product image in detail and generate a complete catalog entry suitable for e-commerce platforms like Amazon or Flipkart. 
+    Extract all possible information, including but not limited to:
+
+    1. **Basic Details**: Product name (required), price (numerical, no symbols), manufacturer, and category.
+    2. **Description**: A detailed product description highlighting its features, uses, and benefits.
+    3. **Specifications**: List any technical specifications, dimensions, weight, color options, and material composition.
+    4. **Key Features**: Bullet points summarizing unique selling points and benefits of the product.
+    5. **Usage Instructions**: Any recommended usage guidelines, care instructions, or safety information.
+    6. **Target Audience**: Intended audience or specific customer segment (e.g., kids, professionals).
+    7. **Certifications**: Any relevant certifications, compliance marks, or eco-friendly labels.
+    8. **Additional Attributes**: Include any available warranty details, variants, or bundle options.
+    9. **Marketing Tags**: Suggest relevant keywords for SEO, such as brand, purpose, category, and features.
+    10. **Comparison Points**: How it stands out against similar products, if available.
+
+Generate as much information as possible to maximize the listing's effectiveness and detail, making it ready for e-commerce upload."
   `;
 
   const imageParts = [fileToGenerativePart(imagePath, 'image/jpg')];
