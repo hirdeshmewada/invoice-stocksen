@@ -6,21 +6,18 @@ const cors = require('cors');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
-const port = process.env.PORT || 5000; // Use the PORT environment variable
+const port = process.env.PORT || 5000;
 
-// Use CORS
 app.use(cors());
 
-// Set up multer for file uploads
 const upload = multer({ dest: "/tmp/" });
 
-// Access your API key as an environment variable
 if (!process.env.GOOGLE_API_KEY) {
   throw new Error('GOOGLE_API_KEY is not defined in the environment variables');
 }
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
-// Converts local file information to a GoogleGenerativeAI.Part object
+// Helper to convert a file to a Generative Part object
 function fileToGenerativePart(path, mimeType) {
   return {
     inlineData: {
@@ -29,112 +26,86 @@ function fileToGenerativePart(path, mimeType) {
     },
   };
 }
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-// Handle favicon requests
-app.get("/favicon.ico", (req, res) => res.status(204));
 
+// 1. Extract data from the image
+async function extractDataFromImage(imagePath) {
+  console.log("Starting image data extraction...");
+  const model = await genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+  const inputPrompt = `
+    "Analyze the provided image and extract initial product details.
+    And Also add the product details more needed for same extracted product to list it on e commerce like amazon or flipkart."
+  `;
+
+  const imageParts = [fileToGenerativePart(imagePath, 'image/jpg')];
+  const result = await model.generateContent([inputPrompt, ...imageParts]);
+  const response = await result.response;
+  console.log("Image data extraction completed. Extracted data:", response.text());
+  return response.text();
+}
+
+// 2. Search for additional details based on extracted data
+async function searchAdditionalData(extractedData) {
+  console.log("Searching for additional product details...");
+  const inputPrompt = `
+    "Use the following product information to enhance details: ${JSON.stringify(extractedData)}. Search for relevant metadata such as model, brand, category, and other catalog information. Return the output as a plain JSON object in the following structure:
+    Leave any attribute with unknown values as an empty string. 
+    {
+     "result": {
+       "product_metadata": [
+           {
+               
+               // Add additional fields and informations as needed
+           }
+       ]
+     }
+    }
+    Do not add any additional characters or formatting such as markdown or code syntax.
+  `;
+
+  const model = await genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const result = await model.generateContent([inputPrompt]);
+  const response = await result.response;
+  console.log("Additional data search completed. Enhanced data:", response.text());
+
+  // Parsing enhanced data into a JSON format, this needs to return a valid object structure
+  let enhancedData = {};
+  try {
+    enhancedData = JSON.parse(response.text());
+  } catch (error) {
+    console.error('Error parsing enhanced data:', error);
+    throw new Error('Failed to parse enhanced data');
+  }
+  return enhancedData;
+}
+
+
+// Endpoint to handle the catalog creation
 app.post('/query-image', upload.single('image'), async (req, res) => {
+  console.log("Received a request to create product catalog.");
   const imagePath = req.file.path;
   const customQuery = req.body.customQuery || '';
 
   try {
-    const model = await genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    // Step 1: Extract initial data from the image
+    console.log("Starting Step 1: Extract data from image...");
+    const extractedData = await extractDataFromImage(imagePath);
 
-    const inputPrompt = `
-    "Analyze the provided image and extract all possible product details. If you have knowledge about that product, use them for creating a detailed catalog entry. Return the output as a plain JSON object in the following structure:
+    // Step 2: Search for additional data based on the extracted information
+    console.log("Starting Step 2: Search for additional product data...");
+    const enhancedData = await searchAdditionalData(extractedData);
 
-   {
-      \"product_metadata\": [
-          {
-              \"product_name\": \"\",
-              \"brand\": \"\",
-              \"category\": \"\",
-              \"description\": \"\",
-              \"product_id\": \"\",
-              \"request_id\": \"\",
-              \"model\": \"\",
-              \"model_year\": \"\",
-              \"UPC\": \"\",
-              \"SKU\": \"\",
-              \"source_product_id\": \"\",
-              \"size\": \"\",
-              \"weight\": \"\",
-              \"length\": \"\",
-              \"breadth\": \"\",
-              \"height\": \"\",
-              \"color\": \"\",
-              \"color_name\": \"\",
-              \"pattern\": \"\",
-              \"material\": \"\",
-              \"gender\": \"\",
-              \"collar\": \"\",
-              \"sleeve_length\": \"\",
-              \"fit\": \"\",
-              \"hemline\": \"\",
-              \"neck\": \"\",
-              \"key_features\": \"\",
-              \"care_instructions\": \"\",
-              \"water_resistant\": \"\",
-              \"battery_life\": \"\",
-              \"occasion\": \"\",
-              \"season\": \"\",
-              \"refurbished\": \"\",
-              \"image_link\": \"\",
-              \"image_name\": \"\",
-              \"additional_image_links\": \"\",
-              \"manufacturer_details\": \"\",
-              \"country_of_origin\": \"\",
-              \"batch_number\": \"\",
-              \"manufacturing_date\": \"\",
-              \"expiry_date\": \"\",
-              \"regulatory_numbers\": \"\",
-              \"additives_info\": \"\",
-              \"allergen_information\": \"\",
-              \"nutritional_info\": {
-                  \"energy_kcal\": \"\",
-                  \"carbohydrates_gm\": \"\",
-                  \"protein_gm\": \"\",
-                  \"sodium_mg\": \"\",
-                  \"total_fat_gm\": \"\",
-                  \"fat_saturated_gm\": \"\",
-                  \"fat_trans_gm\": \"\"
-              },
-              \"product_benefits\": \"\",
-              \"product_highlights\": \"\",
-              \"consumer_care_email\": \"\",
-              \"consumer_care_phone\": \"\",
-              \"instructions\": \"\",
-              \"usage_notes\": \"\",
-              \"unique_selling_points\": \"\",
-              \"customer_id\": \"\",
-              \"ondc_domain\": \"\"
-          }
-      ]
-   }
-
-   Ensure every attribute is present in the structure, even if the value is unknown. Leave any attribute with unknown values as an empty string. Do not add any additional characters or formatting such as markdown or code syntax."
-   Custom Query: ${customQuery}
-`;
-
-    const imageParts = [fileToGenerativePart(imagePath, 'image/jpg')];
-
-    const result = await model.generateContent([inputPrompt, ...imageParts]);
-    const response = await result.response;
-    const text = await response.text();
-
-    // Parse the response text to a JavaScript object
-    const parsedResult = JSON.parse(text);
 
     // Clean up the uploaded file
     fs.unlinkSync(imagePath);
+    console.log("Temporary file cleaned up.");
 
-    // Return the parsed result as a proper JSON object (not a string)
-    res.json({ result: parsedResult });
+    // Send the final structured catalog as JSON response
+    res.json(enhancedData);
+ 
   } catch (error) {
-    console.error('Error querying the Gemini LLM model:', error);
-    res.status(500).json({ error: 'Error querying the Gemini LLM model', details: error.message });
+    console.error('Error creating the product catalog:', error);
+    res.status(500).json({ error: 'Error creating the product catalog', details: error.message });
   }
 });
 
