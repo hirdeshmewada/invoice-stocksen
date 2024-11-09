@@ -34,13 +34,14 @@ async function extractDataFromImage(imagePath) {
 
   const inputPrompt = `
    "Analyze the provided product image and generate a complete e-commerce listing suitable for platforms like Amazon or Flipkart. 
-    Include essential details:
+     use web search Include essential details,:
 
     - **Core Info**: Product_name, brand, model/SKU, and price (in rupees, no symbols).
     - **Description**: Key features, unique benefits, and ideal uses.
     - **Specifications**: Size, weight, color, materials, and compatibility.
     - **Usage & Care**: Instructions, safety info, and any setup steps.
     - **Audience & Use Cases**: Target users and ideal settings.
+    - **Description **: Includes a details paragraph and points about product like e commerce.
     - **Extras**: Certifications, warranty, options (e.g., colors), and SEO tags.
 
 Create a thorough, organized catalog entry ready for upload."
