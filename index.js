@@ -34,7 +34,7 @@ async function extractDataFromImage(imagePath) {
 
   const inputPrompt = `
     "Analyze the provided image and extract initial product details.
-    And Also add the product details more needed for same extracted product to list it on e commerce like amazon or flipkart."
+    And Also add the product details more needed for same extracted product to list it on e commerce like amazon or flipkart with price in rupees."
   `;
 
   const imageParts = [fileToGenerativePart(imagePath, 'image/jpg')];
