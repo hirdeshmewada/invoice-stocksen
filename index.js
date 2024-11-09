@@ -33,21 +33,17 @@ async function extractDataFromImage(imagePath) {
   const model = await genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
   const inputPrompt = `
-    "Analyze the provided product image in detail and generate a complete catalog entry suitable for e-commerce platforms like Amazon or Flipkart. 
-    Extract all possible information, including but not limited to:
+   "Analyze the provided product image and generate a complete e-commerce listing suitable for platforms like Amazon or Flipkart. 
+    Include essential details:
 
-    1. **Basic Details**: Product name (required), price (numerical, no symbols), manufacturer, and category.
-    2. **Description**: A detailed product description highlighting its features, uses, and benefits.
-    3. **Specifications**: List any technical specifications, dimensions, weight, color options, and material composition.
-    4. **Key Features**: Bullet points summarizing unique selling points and benefits of the product.
-    5. **Usage Instructions**: Any recommended usage guidelines, care instructions, or safety information.
-    6. **Target Audience**: Intended audience or specific customer segment (e.g., kids, professionals).
-    7. **Certifications**: Any relevant certifications, compliance marks, or eco-friendly labels.
-    8. **Additional Attributes**: Include any available warranty details, variants, or bundle options.
-    9. **Marketing Tags**: Suggest relevant keywords for SEO, such as brand, purpose, category, and features.
-    10. **Comparison Points**: How it stands out against similar products, if available.
+    - **Core Info**: Product_name, brand, model/SKU, and price (in rupees, no symbols).
+    - **Description**: Key features, unique benefits, and ideal uses.
+    - **Specifications**: Size, weight, color, materials, and compatibility.
+    - **Usage & Care**: Instructions, safety info, and any setup steps.
+    - **Audience & Use Cases**: Target users and ideal settings.
+    - **Extras**: Certifications, warranty, options (e.g., colors), and SEO tags.
 
-Generate as much information as possible to maximize the listing's effectiveness and detail, making it ready for e-commerce upload."
+Create a thorough, organized catalog entry ready for upload."
   `;
 
   const imageParts = [fileToGenerativePart(imagePath, 'image/jpg')];
