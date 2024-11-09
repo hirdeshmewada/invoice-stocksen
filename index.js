@@ -33,7 +33,7 @@ async function extractDataFromImage(imagePath) {
   const model = await genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
   const inputPrompt = `
-   "Analyze the provided product image and generate a complete e-commerce listing suitable for platforms like Amazon or Flipkart. 
+   "Analyze the provided product image and generate a complete e-commerce listing suitable for platforms like Amazon or Flipkart  with product_name must there. 
      Include essential details,:
 
     - **Core Info**: product_name, brand, model/SKU, and price (in rupees, no symbols).
@@ -43,7 +43,7 @@ async function extractDataFromImage(imagePath) {
     - **Audience & Use Cases**: Target users and ideal settings.
     - **Extras**: Certifications, warranty, options (e.g., colors), and SEO tags.
 
-Create a thorough, organized catalog entry ready for upload with product_name must."
+Create a thorough, organized catalog entry ready for upload."
   `;
 
   const imageParts = [fileToGenerativePart(imagePath, 'image/jpg')];
