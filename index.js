@@ -33,8 +33,8 @@ async function extractDataFromImage(imagePath) {
   const model = await genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
   const inputPrompt = `
-    "Analyze the provided image and extract initial product details.
-    And Also add the product details more needed for same extracted product to list it on e commerce like amazon or flipkart with price in rupees."
+    "Analyze the provided image and extract initial product details name compulsory.
+    And Also add the product details more needed for same extracted product to list it on e commerce like amazon or flipkart with price in rupees and category"
   `;
 
   const imageParts = [fileToGenerativePart(imagePath, 'image/jpg')];
