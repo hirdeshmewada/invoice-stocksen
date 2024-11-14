@@ -27,23 +27,23 @@ function fileToGenerativePart(path, mimeType) {
   };
 }
 
-// 1. Extract data from the image
+// Function to extract data from the image
 async function extractDataFromImage(imagePath) {
   console.log("Starting image data extraction...");
   const model = await genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
   const inputPrompt = `
-   "Analyze the provided product image and generate a complete e-commerce listing suitable for platforms like Amazon or Flipkart  with product_name must there. 
-     Include essential details,:
+   "Analyze the provided product image and generate a complete e-commerce listing suitable for platforms like Amazon or Flipkart with product_name. 
+    Include essential details:
 
     - **Core Info**: product_name, brand, model/SKU, and price (in rupees, no symbols).
-    - **Description**:Includes a details paragraph and points Key features, unique benefits, and ideal uses.
+    - **Description**: Includes a detailed paragraph and points with key features, unique benefits, and ideal uses.
     - **Specifications**: Size, weight, color, materials, and compatibility.
     - **Usage & Care**: Instructions, safety info, and any setup steps.
     - **Audience & Use Cases**: Target users and ideal settings.
     - **Extras**: Certifications, warranty, options (e.g., colors), and SEO tags.
 
-Create a thorough, organized catalog entry ready for upload."
+    Create a thorough, organized catalog entry ready for upload."
   `;
 
   const imageParts = [fileToGenerativePart(imagePath, 'image/jpg')];
@@ -53,21 +53,22 @@ Create a thorough, organized catalog entry ready for upload."
   return response.text();
 }
 
-// 2. Search for additional details based on extracted data
+// Function to search for additional product details based on extracted data
 async function searchAdditionalData(extractedData) {
   console.log("Searching for additional product details...");
   const inputPrompt = `
-    "Use the following product information to enhance details: ${JSON.stringify(extractedData)}. Search for relevant metadata such as model, brand, category, and other catalog information. Return the output as a plain JSON object in the following structure:
+    "Use the following product information to enhance details: ${JSON.stringify(extractedData)}. 
+    Search for relevant metadata such as model, brand, category, and other catalog information. 
+    Return the output as a plain JSON object in the following structure:
     Leave any attribute with unknown values as an empty string. 
     {
-     "result": {
-       "product_metadata": [
-           {
-               
-               // Add additional fields and informations as needed
-           }
-       ]
-     }
+      "result": {
+        "product_metadata": [
+          {
+            // Add additional fields and information as needed
+          }
+        ]
+      }
     }
     Do not add any additional characters or formatting such as markdown or code syntax.
   `;
@@ -77,7 +78,6 @@ async function searchAdditionalData(extractedData) {
   const response = await result.response;
   console.log("Additional data search completed. Enhanced data:", response.text());
 
-  // Parsing enhanced data into a JSON format, this needs to return a valid object structure
   let enhancedData = {};
   try {
     enhancedData = JSON.parse(response.text());
@@ -88,30 +88,48 @@ async function searchAdditionalData(extractedData) {
   return enhancedData;
 }
 
+// Endpoint to handle the catalog creation for multiple images
+app.post('/query-images', upload.array('images', 5), async (req, res) => {
+  console.log("Received a request to create product catalog from multiple images.");
+  const images = req.files;
 
-// Endpoint to handle the catalog creation
+  try {
+    // Step 1: Extract initial data from each image
+    const extractedData = await Promise.all(images.map(file => extractDataFromImage(file.path)));
+
+    // Step 2: Search for additional data based on the extracted information
+    const enhancedData = await Promise.all(extractedData.map(data => searchAdditionalData(data)));
+
+    // Clean up the uploaded files
+    images.forEach(file => fs.unlinkSync(file.path));
+    console.log("Temporary files cleaned up.");
+
+    res.json(enhancedData);
+
+  } catch (error) {
+    console.error('Error creating the product catalog:', error);
+    res.status(500).json({ error: 'Error creating the product catalog', details: error.message });
+  }
+});
+
+// Endpoint to handle catalog creation for a single image
 app.post('/query-image', upload.single('image'), async (req, res) => {
-  console.log("Received a request to create product catalog.");
+  console.log("Received a request to create product catalog from a single image.");
   const imagePath = req.file.path;
-  const customQuery = req.body.customQuery || '';
 
   try {
     // Step 1: Extract initial data from the image
-    console.log("Starting Step 1: Extract data from image...");
     const extractedData = await extractDataFromImage(imagePath);
 
     // Step 2: Search for additional data based on the extracted information
-    console.log("Starting Step 2: Search for additional product data...");
     const enhancedData = await searchAdditionalData(extractedData);
-
 
     // Clean up the uploaded file
     fs.unlinkSync(imagePath);
     console.log("Temporary file cleaned up.");
 
-    // Send the final structured catalog as JSON response
     res.json(enhancedData);
- 
+
   } catch (error) {
     console.error('Error creating the product catalog:', error);
     res.status(500).json({ error: 'Error creating the product catalog', details: error.message });
