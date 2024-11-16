@@ -30,7 +30,7 @@ function fileToGenerativePart(path, mimeType) {
 // Function to extract data from the image
 async function extractDataFromImage(imagePath) {
   console.log("Starting image data extraction...");
-  const model = await genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = await genAI.getGenerativeModel({ model: 'gemini-1.5-flash-8b' });
 
   const inputPrompt = `
    "Analyze the provided product image and generate a complete e-commerce listing suitable for platforms like Amazon or Flipkart with product_name. 
@@ -73,7 +73,7 @@ async function searchAdditionalData(extractedData) {
     Do not add any additional characters or formatting such as markdown or code syntax.
   `;
 
-  const model = await genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = await genAI.getGenerativeModel({ model: 'gemini-1.5-flash-8b' });
   const result = await model.generateContent([inputPrompt]);
   const response = await result.response;
   console.log("Additional data search completed. Enhanced data:", response.text());
@@ -191,9 +191,9 @@ app.post('/query-images', upload.array('images', 10), async (req, res) => {
     try {
       // Try gemini-1.5-flash first
       console.log("Attempting to use gemini-1.5-flash...");
-      const flashModel = await genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      const flashModel = await genAI.getGenerativeModel({ model: 'gemini-1.5-flash-8b' });
       const flashResult = await flashModel.generateContent([inputPrompt, ...imageParts]);
-      response = await flashResult.response;
+      response = flashResult.response;
     } catch (flashError) {
       // If flash fails, fallback to gemini-1.5-pro
       console.log("gemini-1.5-flash failed, falling back to gemini-1.5-pro...");
